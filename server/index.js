@@ -7,10 +7,13 @@ import multer from "multer";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
-import { fileURLToPath } from "url";
-import { register } from "./controllers/auth.js";
+import {fileURLToPath} from "url";
+import {register} from "./controllers/auth.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
+import postRoutes from "./routes/posts.js";
+import {verifyTokens} from "./middleware/auth.js";
+import {createPost} from "./controllers/posts.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +45,12 @@ const upload = multer({ storage: storage });
 
 /* ROUTS WITH FILES */
 app.post("/auth/register", upload.single("picture"), register);
+app.use("/posts", verifyTokens, upload.single("picture"), createPost);
+
+/* ROUTES */
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
+app.use("/posts", postRoutes);
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 3002;
@@ -51,5 +60,5 @@ mongoose.connect(MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(() => {
-    app.listen(PORT, () => console.log(`Server logged in from Port: ${PORT}`));
-}).catch((err) => console.log(`We have an error unfortunately: ${err}`));
+        app.listen(PORT, () => console.log(`Server logged in from Port: ${PORT}`));
+    }).catch((err) => console.log(`We have an error unfortunately: ${err}`));
